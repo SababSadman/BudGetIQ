@@ -1,0 +1,29 @@
+# Aura Finance Task Breakdown
+
+- [x] **Planning & Setup**
+  - [x] Define implementation plan and get user approval.
+  - [x] Initialize project structure (frontend and backend).
+  - [ ] Set up Supabase project and database schema.
+
+- [ ] **Backend Development (Node.js/Express)**
+  - [ ] Initialize backend with Express and connection to Supabase.
+  - [ ] Implement multi-currency calculation endpoints.
+  - [ ] Implement recurring transaction logic (cron/Edge Functions).
+
+- [ ] **Frontend Foundation (React + Vite)**
+  - [ ] Scaffold React app with Vite and configure Tailwind CSS.
+  - [ ] Set up global state/context for Auth and Currency.
+  - [ ] Implement Supabase Auth UI (Login/Signup flows with Framer Motion).
+
+- [ ] **Frontend Core Features**
+  - [ ] Build global "Quick Add" hotkey overlay (Cmd+K / Ctrl+K).
+  - [ ] Implement hierarchical category system (Parent/Child).
+  - [ ] Build the Main Dashboard UI.
+
+- [ ] **3D Visualization (Three.js/React Three Fiber)**
+  - [ ] Integrate React Three Fiber.
+  - [ ] Build the "Financial Zen" Garden abstract shape.
+  - [ ] Connect shape properties (smoothness/color) to spending data.
+
+- [ ] **Verification & Polish**
+  - [ ] Walkthrough and final bug bash.

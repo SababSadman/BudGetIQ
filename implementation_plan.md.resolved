@@ -1,0 +1,123 @@
+# Aura Finance - Implementation Plan
+
+## Goal Description
+Build "Aura Finance", a minimalist 3D expense tracker that focuses on speed, aesthetic design, and performance. The application will use a React + Vite + Tailwind CSS + Three.js frontend, a Node.js + Express backend for logic and recurring transactions, and Supabase for database, authentication, and security (RLS). 
+
+## User Review Required
+> [!IMPORTANT]
+> **Supabase Setup**: For full integration, you will need to create a new project in the Supabase Dashboard, obtain the `SUPABASE_URL` and `SUPABASE_ANON_KEY` (and `SERVICE_ROLE_KEY` for backend), and provide them in the respective `.env` files. We will setup the schema using Supabase SQL scripts.
+
+> [!NOTE]
+> **Currency API**: We need an API key for live exchange rates (e.g., FreeCurrencyAPI, ExchangeRate-API). Please let me know if you have a preferred provider, or we can use a free tier.
+
+## Proposed Changes
+
+### Project Initialization Architecture
+We will create a monorepo-style structure inside `e:/PROJECTS/Prac-threeJS/looptrack`:
+- `client/` - React, Vite, Tailwind CSS, Three.js application.
+- `server/` - Node.js, Express backend.
+- `supabase/` - SQL migration scripts and edge functions (if any).
+
+---
+
+### Backend Components
+#### [NEW] [package.json & Setup](#)
+Initialize Node.js backend with Express, `cors`, `dotenv`, `@supabase/supabase-js`, `node-cron` (for recurring transactions) or Supabase Edge Functions.
+
+#### [NEW] [src/index.js](#)
+Entry point of the Express server.
+
+#### [NEW] [src/routes/currency.js](#)
+Endpoint to fetch live currency conversion rates, caching them to avoid rate limits, and allowing frontend to display conversions.
+
+#### [NEW] [src/routes/transactions.js](#)
+Endpoints for custom debt logic or complex mathematical models if needed beyond standard Supabase direct inserts.
+
+#### [NEW] [src/services/cron.js](#)
+A CRON job script that runs daily to process recurring transactions, fetching from a `recurring_expenses` table and inserting into `transactions`.
+
+---
+
+### Frontend Components
+#### [NEW] [package.json & Setup](#)
+Initialize React + Vite. Install `tailwindcss`, `@react-three/fiber`, `@react-three/drei`, `three`, `framer-motion`, `@supabase/supabase-js`, `zustand` (for state management), and `lucide-react` (icons).
+
+#### [NEW] [src/index.css](#)
+Global Tailwind configurations. Includes `#09090b` (Deep Zinc) background and custom utilities.
+
+#### [NEW] [src/App.jsx & src/main.jsx](#)
+App wrapper providing Routing and Supabase Auth Context.
+
+#### [NEW] [src/components/ThreeCanvas.jsx](#)
+The 3D "Financial Zen" Garden using React Three Fiber. Displays an abstract shape (e.g., deformed sphere) whose geometric noise and color shift based on the user's spending vs. budget limit.
+
+#### [NEW] [src/components/QuickAdd.jsx](#)
+A global overlay modal triggered by `Cmd+K`/`Ctrl+K`. Focuses an input automatically and parses natural language or fixed formats (e.g., `25.50 Coffee`) to rapidly insert an expense.
+
+#### [NEW] [src/components/Auth.jsx](#)
+Sleek, Framer Motion-animated login and multi-step signup card using Glassmorphism (`backdrop-blur-md`).
+
+#### [NEW] [src/pages/Dashboard.jsx](#)
+The main view, containing the 3D canvas, recent transactions list, and budget overview.
+
+---
+
+### Database Schema (Supabase)
+#### [NEW] [supabase/schema.sql](#)
+```sql
+-- Users (linked to auth.users)
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  primary_currency TEXT DEFAULT 'USD',
+  budget_limit DECIMAL(12, 2) DEFAULT 0
+);
+
+-- Categories (Hierarchical)
+CREATE TABLE categories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  name TEXT NOT NULL,
+  parent_id UUID REFERENCES categories(id) NULL
+);
+
+-- Transactions
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  amount DECIMAL(12, 2) NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  category_id UUID REFERENCES categories(id),
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  is_recurring BOOLEAN DEFAULT false
+);
+
+-- Recurring Schedules
+CREATE TABLE recurring_expenses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id),
+  amount DECIMAL(12, 2) NOT NULL,
+  currency TEXT,
+  category_id UUID REFERENCES categories(id),
+  description TEXT,
+  frequency TEXT, -- 'daily', 'weekly', 'monthly'
+  next_run_date TIMESTAMPTZ
+);
+```
+
+#### Row-Level Security (RLS)
+Enable RLS on all tables so `user_id = auth.uid()` is required to SELECT, INSERT, UPDATE, or DELETE.
+
+## Verification Plan
+
+### Automated Tests
+- Test currency conversion endpoints using `cURL` or Postman.
+- Run `npm run lint` and `npm run build` on Vite to ensure no compilation errors.
+- Test the CRON logic by mocking the date and executing the script manually.
+
+### Manual Verification
+1. **Auth Flow**: Register a new user, complete the onboarding setup (currency & top categories), and observe the Framer Motion transition into the dashboard.
+2. **Quick Add**: Press `Cmd+K` / `Ctrl+K`, type `15.00 Lunch`, press Enter, and ensure it appears instantly on the UI and in Supabase.
+3. **3D Interaction**: Add expenses that exceed the `budget_limit` and observe the Three.js shape become "jagged" or change color.
+4. **RLS Verification**: Try to fetch transactions without an auth token or with a different user's token via cURL/Supabase dashboard to ensure it is blocked.
+5. **Recurring Transactions**: Manually trigger the backend CRON endpoint/script to ensure transactions are populated for the current date.
