@@ -6,7 +6,7 @@
 -- 1. Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Clean up old triggers to prevent conflicts
+-- 2. Clean up old triggers and functions to prevent conflicts
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user();
 
@@ -77,12 +77,24 @@ CREATE POLICY "Users manage own categories" ON public.categories FOR ALL USING (
 CREATE POLICY "Users manage own transactions" ON public.transactions FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users manage own recurring expenses" ON public.recurring_expenses FOR ALL USING (auth.uid() = user_id);
 
--- 5. Setup the Auth Trigger (Auto-creates a profile when a user signs up)
+-- 5. Setup the Auth Trigger (Auto-creates a profile AND default categories when a user signs up)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- 1. Create Profile
   INSERT INTO public.profiles (id, display_name)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'display_name');
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)));
+
+  -- 2. Create Default Categories
+  INSERT INTO public.categories (user_id, name, icon, color)
+  VALUES 
+    (NEW.id, 'Food & Drink', '🍜', '#f97316'),
+    (NEW.id, 'Transport', '🚌', '#3b82f6'),
+    (NEW.id, 'Entertainment', '🎮', '#a855f7'),
+    (NEW.id, 'Health', '💊', '#22c55e'),
+    (NEW.id, 'Shopping', '🛍️', '#ec4899'),
+    (NEW.id, 'Utilities', '💡', '#eab308');
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
