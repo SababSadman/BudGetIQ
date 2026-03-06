@@ -198,11 +198,12 @@ export default function Auth() {
                             {loading ? 'Loading…' : mode === 'login' ? 'Sign In' : 'Create Account'}
                         </button>
 
-                        {/* Demo hint */}
-                        <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                            <Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                            {' '}No Supabase? Enter any email/password to demo
-                        </p>
+                        {/* Auth requirement hint */}
+                        {!import.meta.env.VITE_SUPABASE_URL && (
+                            <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
+                                ⚠️ Missing Database Configuration (Vercel ENV vars)
+                            </p>
+                        )}
                     </motion.form>
                 </AnimatePresence>
             </motion.div>

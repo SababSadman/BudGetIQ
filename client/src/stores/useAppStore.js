@@ -74,9 +74,8 @@ export const useAppStore = create(
 
             signIn: async (email, password) => {
                 if (!hasSupabase) {
-                    const demoUser = { id: 'demo-user', email, display_name: email.split('@')[0] };
-                    set({ user: demoUser });
-                    return { error: null };
+                    console.error('Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.');
+                    return { error: { message: 'Database connection missing. Please configure environment variables.' } };
                 }
 
                 try {
@@ -100,9 +99,8 @@ export const useAppStore = create(
 
             signUp: async (email, password, displayName) => {
                 if (!hasSupabase) {
-                    const demoUser = { id: 'demo-user', email, display_name: displayName };
-                    set({ user: demoUser, isNewUser: true });
-                    return { error: null };
+                    console.error('Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.');
+                    return { error: { message: 'Database connection missing. Please configure environment variables.' } };
                 }
                 const { data, error } = await supabase.auth.signUp({
                     email, password,
@@ -197,7 +195,6 @@ export const useAppStore = create(
                     .from('transactions')
                     .select('*')
                     .eq('user_id', user.id)
-                    .gte('created_at', monthStart.toISOString())
                     .order('created_at', { ascending: false });
 
                 if (!error && data) set({ transactions: data });
