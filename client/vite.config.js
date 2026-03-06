@@ -9,5 +9,5 @@ export default defineConfig({
     react(),
 
   ],
-  base: process.env.VITE_BASE_PATH || "/FINANCE-TRACKER",
+  base: process.env.VITE_BASE_PATH || "/",
 })
