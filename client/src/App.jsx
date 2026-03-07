@@ -6,6 +6,7 @@ import QuickAdd from './components/QuickAdd';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Settings from './pages/Settings';
+import Savings from './pages/Savings';
 
 export default function App() {
   const user = useAppStore(s => s.user);
@@ -24,6 +25,7 @@ export default function App() {
       <main style={{ flex: 1 }}>
         {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
         {page === 'transactions' && <Transactions />}
+        {page === 'savings' && <Savings />}
         {page === 'settings' && <Settings />}
       </main>
       <QuickAdd />

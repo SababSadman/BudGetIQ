@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, LogOut, Settings, DollarSign, LayoutDashboard, List, ChevronDown } from 'lucide-react';
+import { Zap, LogOut, Settings, DollarSign, LayoutDashboard, List, ChevronDown, PiggyBank } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
+import logo from '../assets/budget_logo-removebg.png';
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'BDT'];
 
@@ -13,6 +14,7 @@ export default function Navbar({ currentPage, onNavigate }) {
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { id: 'transactions', label: 'Transactions', icon: List },
+        { id: 'savings', label: 'Savings', icon: PiggyBank },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 
@@ -35,10 +37,11 @@ export default function Navbar({ currentPage, onNavigate }) {
                     padding: '0 0.5rem 0 0',
                 }}
             >
-                <span style={{ fontSize: '1.2rem' }}>💸</span>
-                <span className="glow-text" style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em' }}>
-                    Aura
-                </span>
+                <img
+                    src={logo}
+                    alt="BudGetIQ Logo"
+                    style={{ height: '32px', width: 'auto', display: 'block' }}
+                />
             </button>
 
             {/* Nav items — desktop */}

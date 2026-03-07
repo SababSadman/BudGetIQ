@@ -19,4 +19,4 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', time: new Date().toIS
 app.use('/api/currency', currencyRoutes);
 app.use('/api/transactions', transactionRoutes);
 
-app.listen(PORT, () => console.log(`🚀 Aura Finance server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 BudGetIQ server running on port ${PORT}`));

@@ -19,6 +19,7 @@ export default function QuickAdd() {
     const { quickAddOpen, setQuickAddOpen, addTransaction, categories, currency } = useAppStore();
     const [input, setInput] = useState('');
     const [catId, setCatId] = useState('');
+    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
@@ -39,7 +40,9 @@ export default function QuickAdd() {
     useEffect(() => {
         if (quickAddOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
-            setInput(''); setCatId(''); setError(''); setSuccess(false);
+            setInput(''); setCatId('');
+            setDate(new Date().toISOString().split('T')[0]);
+            setError(''); setSuccess(false);
         }
     }, [quickAddOpen]);
 
@@ -57,6 +60,7 @@ export default function QuickAdd() {
             description: parsed.description,
             currency,
             category_id: catId || (categories[0]?.id || null),
+            created_at: new Date(date).toISOString(), // Use selected date
         });
         setLoading(false);
 
@@ -116,17 +120,26 @@ export default function QuickAdd() {
                                 style={{ fontSize: '1.05rem', padding: '0.85rem 1rem' }}
                             />
 
-                            <select
-                                className="input"
-                                value={catId}
-                                onChange={e => setCatId(e.target.value)}
-                                style={{ color: catId ? 'var(--text-primary)' : 'var(--text-muted)' }}
-                            >
-                                <option value="">Pick a category (optional)</option>
-                                {categories.map(c => (
-                                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                                ))}
-                            </select>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <select
+                                    className="input"
+                                    value={catId}
+                                    onChange={e => setCatId(e.target.value)}
+                                    style={{ color: catId ? 'var(--text-primary)' : 'var(--text-muted)', flex: 1 }}
+                                >
+                                    <option value="">Pick a category (optional)</option>
+                                    {categories.map(c => (
+                                        <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    className="input"
+                                    type="date"
+                                    value={date}
+                                    onChange={e => setDate(e.target.value)}
+                                    style={{ color: date ? 'var(--text-primary)' : 'var(--text-muted)', width: 'auto', minWidth: '130px' }}
+                                />
+                            </div>
 
                             {error && (
                                 <p style={{ fontSize: '0.8rem', color: 'var(--danger)', paddingLeft: '0.2rem' }}>{error}</p>

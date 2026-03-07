@@ -8,15 +8,17 @@ const EMOJIS = ['🍜', '🚌', '🎮', '💊', '🛍️', '💡', '☕', '🥗'
 const COLORS = ['#f97316', '#3b82f6', '#a855f7', '#22c55e', '#ec4899', '#eab308', '#06b6d4', '#ef4444', '#8b5cf6', '#14b8a6'];
 
 export default function Settings() {
-    const { currency, setCurrency, budgetLimit, setBudgetLimit, categories, addCategory, removeCategory } = useAppStore();
+    const { currency, setCurrency, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, categories, addCategory, removeCategory } = useAppStore();
 
     const [budget, setBudget] = useState(String(budgetLimit));
+    const [weeklyBudget, setWeeklyBudget] = useState(String(weeklyBudgetLimit || (budgetLimit / 4.33).toFixed(0)));
     const [saved, setSaved] = useState(false);
 
     const [newCat, setNewCat] = useState({ name: '', icon: '💸', color: COLORS[0] });
 
     const handleSave = () => {
         setBudgetLimit(parseFloat(budget) || 0);
+        setWeeklyBudgetLimit(parseFloat(weeklyBudget) || 0);
         setSaved(true);
         setTimeout(() => setSaved(false), 2200);
     };
@@ -70,6 +72,20 @@ export default function Settings() {
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
                         The 3D zen sphere reacts to how close you are to this limit.
                     </p>
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                        Weekly Budget Limit ({currency})
+                    </label>
+                    <input
+                        className="input"
+                        type="number"
+                        min="0"
+                        step="10"
+                        value={weeklyBudget}
+                        onChange={e => setWeeklyBudget(e.target.value)}
+                    />
                 </div>
 
                 <button

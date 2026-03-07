@@ -5,6 +5,9 @@ import { useAppStore } from '../stores/useAppStore';
 import ThreeCanvas from '../components/ThreeCanvas';
 import TransactionList from '../components/TransactionList';
 import BudgetRing from '../components/BudgetRing';
+import CategoryChart from '../components/CategoryChart';
+import CategoryExpenseList from '../components/CategoryExpenseList';
+import CalendarWidget from '../components/CalendarWidget';
 
 function StatCard({ label, value, sub, icon: Icon, color, delay = 0 }) {
     return (
@@ -92,7 +95,18 @@ export default function Dashboard({ onNavigate }) {
                             See all →
                         </button>
                     </div>
-                    <TransactionList limit={8} />
+                    <TransactionList limit={4} />
+                </motion.div>
+
+                {/* Category Sub-Expense section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    className="glass"
+                    style={{ padding: '1.25rem', flex: 1 }}
+                >
+                    <CategoryExpenseList />
                 </motion.div>
             </div>
 
@@ -121,27 +135,22 @@ export default function Dashboard({ onNavigate }) {
                     <h2 style={{ fontSize: '0.9rem', fontWeight: 600, alignSelf: 'flex-start' }}>Monthly Budget</h2>
                     <BudgetRing size={160} />
 
-                    {/* Category breakdown */}
-                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {topCats.map(({ name, total }) => {
-                            const pct = budgetLimit > 0 ? Math.min(100, (total / budgetLimit) * 100) : 0;
-                            return (
-                                <div key={name}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: 3 }}>
-                                        <span>{name}</span>
-                                        <span>{currency} {total.toFixed(2)}</span>
-                                    </div>
-                                    <div style={{ height: 4, background: 'var(--border)', borderRadius: 99 }}>
-                                        <div style={{
-                                            height: '100%', background: 'var(--accent)',
-                                            borderRadius: 99, width: `${pct}%`,
-                                            transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)',
-                                        }} />
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    {/* Category breakdown Chart */}
+                    <div style={{ width: '100%', marginTop: '0.5rem' }}>
+                        <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Spending by Category</h3>
+                        <CategoryChart />
                     </div>
+                </motion.div>
+
+                {/* Calendar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.45 }}
+                    className="glass"
+                    style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column' }}
+                >
+                    <CalendarWidget />
                 </motion.div>
 
                 {/* Quick add CTA */}

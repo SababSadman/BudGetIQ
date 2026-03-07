@@ -47,6 +47,10 @@ export const useAppStore = create(
                                 display_name: session.user.user_metadata?.display_name || session.user.email.split('@')[0]
                             }
                         });
+                        const meta = session.user.user_metadata || {};
+                        if (meta.currency) set({ currency: meta.currency });
+                        if (meta.budgetLimit !== undefined) set({ budgetLimit: Number(meta.budgetLimit) });
+                        if (meta.weeklyBudgetLimit !== undefined) set({ weeklyBudgetLimit: Number(meta.weeklyBudgetLimit) });
                         get().loadCategories();
                         get().loadTransactions();
                     } else {
@@ -64,6 +68,10 @@ export const useAppStore = create(
                                 display_name: session.user.user_metadata?.display_name || session.user.email.split('@')[0]
                             }
                         });
+                        const meta = session.user.user_metadata || {};
+                        if (meta.currency) set({ currency: meta.currency });
+                        if (meta.budgetLimit !== undefined) set({ budgetLimit: Number(meta.budgetLimit) });
+                        if (meta.weeklyBudgetLimit !== undefined) set({ weeklyBudgetLimit: Number(meta.weeklyBudgetLimit) });
                         get().loadCategories();
                         get().loadTransactions();
                     } else {
@@ -87,6 +95,10 @@ export const useAppStore = create(
 
                     if (data?.user) {
                         set({ user: { id: data.user.id, email: data.user.email, display_name: data.user.user_metadata?.display_name || email.split('@')[0] } });
+                        const meta = data.user.user_metadata || {};
+                        if (meta.currency) set({ currency: meta.currency });
+                        if (meta.budgetLimit !== undefined) set({ budgetLimit: Number(meta.budgetLimit) });
+                        if (meta.weeklyBudgetLimit !== undefined) set({ weeklyBudgetLimit: Number(meta.weeklyBudgetLimit) });
                         // Load user data immediately after success
                         await get().loadCategories();
                         await get().loadTransactions();
@@ -121,8 +133,29 @@ export const useAppStore = create(
             // ── Profile ───────────────────────────────────────────────────────────
             currency: 'USD',
             budgetLimit: 1000,
-            setCurrency: (c) => set({ currency: c }),
-            setBudgetLimit: (l) => set({ budgetLimit: Number(l) }),
+            weeklyBudgetLimit: 250,
+
+            syncPreferencesToCloud: async (updates) => {
+                const { user } = get();
+                if (hasSupabase && user) {
+                    await supabase.auth.updateUser({ data: updates });
+                }
+            },
+
+            setCurrency: (c) => {
+                set({ currency: c });
+                get().syncPreferencesToCloud({ currency: c });
+            },
+            setBudgetLimit: (l) => {
+                const val = Number(l);
+                set({ budgetLimit: val });
+                get().syncPreferencesToCloud({ budgetLimit: val });
+            },
+            setWeeklyBudgetLimit: (l) => {
+                const val = Number(l);
+                set({ weeklyBudgetLimit: val });
+                get().syncPreferencesToCloud({ weeklyBudgetLimit: val });
+            },
 
             // ── Exchange rates ────────────────────────────────────────────────────
             rates: DEFAULT_RATES,
@@ -217,7 +250,7 @@ export const useAppStore = create(
                 const newTx = {
                     id: `temp-${Date.now()}`,
                     user_id: user?.id,
-                    created_at: new Date().toISOString(),
+                    created_at: tx.created_at || new Date().toISOString(),
                     is_recurring: false,
                     ...tx,
                     category_id: finalCategoryId
@@ -234,7 +267,8 @@ export const useAppStore = create(
                             currency: tx.currency,
                             description: tx.description,
                             category_id: finalCategoryId,
-                            user_id: user.id
+                            user_id: user.id,
+                            created_at: tx.created_at || new Date().toISOString(),
                         })
                         .select()
                         .single();
@@ -259,6 +293,23 @@ export const useAppStore = create(
                 if (hasSupabase) {
                     await supabase.from('transactions').delete().eq('id', id);
                 }
+            },
+
+            editTransaction: async (id, updates) => {
+                set(s => ({
+                    transactions: s.transactions.map(t => t.id === id ? { ...t, ...updates } : t)
+                }));
+                if (hasSupabase) {
+                    const { error } = await supabase
+                        .from('transactions')
+                        .update(updates)
+                        .eq('id', id);
+                    if (error) {
+                        console.error('Supabase update error:', error.message);
+                        return { error };
+                    }
+                }
+                return { error: null };
             },
 
             // ── Derived / Computed ────────────────────────────────────────────────
@@ -298,11 +349,12 @@ export const useAppStore = create(
             setQuickAddOpen: (v) => set({ quickAddOpen: v }),
         }),
         {
-            name: 'aura-finance-store',
+            name: 'budgetiq-store',
             partialize: (s) => ({
                 user: s.user,
                 currency: s.currency,
                 budgetLimit: s.budgetLimit,
+                weeklyBudgetLimit: s.weeklyBudgetLimit,
                 transactions: s.transactions,
                 categories: s.categories,
             }),

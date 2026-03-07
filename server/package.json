@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "budgetiq-server",
   "version": "1.0.0",
-  "description": "Aura Finance backend",
+  "description": "BudGetIQ backend",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

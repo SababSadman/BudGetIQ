@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
+import bgImage from '../assets/Whisk_c9b7598be6cd2c7b3944bdf8d4bfd1c1dr.jpeg';
+import logo from '../assets/budget_logo-removebg.png';
 
 const slideVariants = {
     enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -40,18 +42,16 @@ export default function Auth() {
 
     return (
         <div className="min-h-dvh flex items-center justify-center px-4 relative overflow-hidden">
-            {/* Ambient background blobs */}
+            {/* Blurred Background Image */}
             <div style={{
-                position: 'absolute', width: 480, height: 480,
-                borderRadius: '50%', top: '-10%', left: '-10%',
-                background: 'radial-gradient(circle, rgba(129,140,248,0.15) 0%, transparent 70%)',
-                filter: 'blur(60px)', pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute', width: 320, height: 320,
-                borderRadius: '50%', bottom: '5%', right: '5%',
-                background: 'radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%)',
-                filter: 'blur(50px)', pointerEvents: 'none',
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url(${bgImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(8px) brightness(0.6)',
+                transform: 'scale(1.1)', // Prevent white edges from blur
+                zIndex: -1,
             }} />
 
             <motion.div
@@ -62,10 +62,14 @@ export default function Auth() {
                 style={{ width: '100%', maxWidth: 420, padding: '2.5rem' }}
             >
                 {/* Logo */}
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💸</div>
+                <div style={{ textAlign: 'center', marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <img
+                        src={logo}
+                        alt="BudGetIQ Logo"
+                        style={{ height: '80px', width: 'auto', marginBottom: '0.5rem' }}
+                    />
                     <h1 className="glow-text" style={{ fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.03em' }}>
-                        Aura Finance
+                        BudGetIQ
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
                         Your minimalist money companion

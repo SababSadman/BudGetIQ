@@ -1,5 +1,5 @@
 -- ============================================================
--- Aura Finance — Complete Supabase Schema (Safe Reset)
+-- BudGetIQ — Complete Supabase Schema (Safe Reset)
 -- Paste this ENTIRE block into the Supabase SQL Editor and run it.
 -- ============================================================
 
