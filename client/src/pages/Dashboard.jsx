@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, TrendingDown, Layers } from 'lucide-react';
+import { Zap, TrendingDown, Layers, PiggyBank } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
 import ThreeCanvas from '../components/ThreeCanvas';
 import TransactionList from '../components/TransactionList';
@@ -46,6 +46,7 @@ export default function Dashboard({ onNavigate }) {
     }, []);
 
     const spent = getMonthlySpend();
+    const monthlySaved = budgetLimit - spent;
     const topCats = getSpendByCategory().slice(0, 3);
 
     return (
@@ -60,11 +61,17 @@ export default function Dashboard({ onNavigate }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem' }}>
                     <StatCard
                         label="MONTHLY SPEND" icon={TrendingDown} color="var(--danger)" delay={0.05}
                         value={`${currency} ${spent.toFixed(2)}`}
                         sub={`of ${currency} ${budgetLimit}`}
+                    />
+                    <StatCard
+                        label="MONTHLY SAVED" icon={PiggyBank}
+                        color={monthlySaved >= 0 ? 'var(--success)' : 'var(--danger)'} delay={0.08}
+                        value={`${monthlySaved < 0 ? '-' : ''}${currency} ${Math.abs(monthlySaved).toFixed(2)}`}
+                        sub={monthlySaved >= 0 ? 'remaining this month' : 'over budget!'}
                     />
                     <StatCard
                         label="TRANSACTIONS" icon={Layers} color="var(--accent)" delay={0.1}
@@ -132,8 +139,22 @@ export default function Dashboard({ onNavigate }) {
                     className="glass"
                     style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
                 >
-                    <h2 style={{ fontSize: '0.9rem', fontWeight: 600, alignSelf: 'flex-start' }}>Monthly Budget</h2>
-                    <BudgetRing size={160} />
+                    <h2 style={{ fontSize: '0.9rem', fontWeight: 600, alignSelf: 'flex-start' }}>Budgets</h2>
+
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', width: '100%', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Monthly</span>
+                            <BudgetRing size={120} type="monthly" />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Weekly</span>
+                            <BudgetRing size={120} type="weekly" />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Daily</span>
+                            <BudgetRing size={120} type="daily" />
+                        </div>
+                    </div>
 
                     {/* Category breakdown Chart */}
                     <div style={{ width: '100%', marginTop: '0.5rem' }}>

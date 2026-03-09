@@ -1,9 +1,14 @@
 import { useAppStore } from '../stores/useAppStore';
 
-export default function BudgetRing({ size = 160 }) {
-    const { getMonthlySpend, budgetLimit, currency } = useAppStore();
-    const spent = getMonthlySpend();
-    const pct = budgetLimit > 0 ? Math.min(1, spent / budgetLimit) : 0;
+export default function BudgetRing({ size = 160, type = 'monthly' }) {
+    const { getMonthlySpend, getWeeklySpend, getDailySpend, budgetLimit, weeklyBudgetLimit, dailyBudgetLimit, currency } = useAppStore();
+
+    const isDaily = type === 'daily';
+    const isWeekly = type === 'weekly';
+    const spent = isDaily ? getDailySpend() : isWeekly ? getWeeklySpend() : getMonthlySpend();
+    const limit = isDaily ? dailyBudgetLimit : isWeekly ? weeklyBudgetLimit : budgetLimit;
+
+    const pct = limit > 0 ? Math.min(1, spent / limit) : 0;
 
     const r = (size / 2) - 14;
     const circ = 2 * Math.PI * r;
@@ -60,8 +65,8 @@ export default function BudgetRing({ size = 160 }) {
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>{currency}</div>
                 <div style={{ height: 1, width: 24, background: 'var(--border)', margin: '0.2rem 0' }} />
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                    of {budgetLimit.toFixed(0)} {currency}
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.3 }}>
+                    of {(limit || 0).toFixed(0)} {currency}
                 </div>
             </div>
         </div>

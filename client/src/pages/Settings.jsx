@@ -8,10 +8,11 @@ const EMOJIS = ['🍜', '🚌', '🎮', '💊', '🛍️', '💡', '☕', '🥗'
 const COLORS = ['#f97316', '#3b82f6', '#a855f7', '#22c55e', '#ec4899', '#eab308', '#06b6d4', '#ef4444', '#8b5cf6', '#14b8a6'];
 
 export default function Settings() {
-    const { currency, setCurrency, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, categories, addCategory, removeCategory } = useAppStore();
+    const { currency, setCurrency, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, dailyBudgetLimit, setDailyBudgetLimit, categories, addCategory, removeCategory } = useAppStore();
 
     const [budget, setBudget] = useState(String(budgetLimit));
     const [weeklyBudget, setWeeklyBudget] = useState(String(weeklyBudgetLimit || (budgetLimit / 4.33).toFixed(0)));
+    const [dailyBudget, setDailyBudget] = useState(String(dailyBudgetLimit || (budgetLimit / 30).toFixed(0)));
     const [saved, setSaved] = useState(false);
 
     const [newCat, setNewCat] = useState({ name: '', icon: '💸', color: COLORS[0] });
@@ -19,6 +20,7 @@ export default function Settings() {
     const handleSave = () => {
         setBudgetLimit(parseFloat(budget) || 0);
         setWeeklyBudgetLimit(parseFloat(weeklyBudget) || 0);
+        setDailyBudgetLimit(parseFloat(dailyBudget) || 0);
         setSaved(true);
         setTimeout(() => setSaved(false), 2200);
     };
@@ -85,6 +87,20 @@ export default function Settings() {
                         step="10"
                         value={weeklyBudget}
                         onChange={e => setWeeklyBudget(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                        Daily Budget Limit ({currency})
+                    </label>
+                    <input
+                        className="input"
+                        type="number"
+                        min="0"
+                        step="5"
+                        value={dailyBudget}
+                        onChange={e => setDailyBudget(e.target.value)}
                     />
                 </div>
 

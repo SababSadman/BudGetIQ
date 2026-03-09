@@ -22,14 +22,18 @@ export default function CalendarWidget() {
     const totalDays = new Date(year, month + 1, 0).getDate();
     const startDay = new Date(year, month, 1).getDay();
 
-    // Map day to the total spend on that day
+    // Map day to the array of transactions on that day
     const expenseMap = useMemo(() => {
         const map = {};
         transactions.forEach(t => {
             const date = new Date(t.created_at);
             if (date.getFullYear() === year && date.getMonth() === month) {
                 const day = date.getDate();
-                map[day] = (map[day] || 0) + (t.amount || 0); // Simplified calculation
+                if (!map[day]) {
+                    map[day] = { total: 0, items: [] };
+                }
+                map[day].total += (t.amount || 0);
+                map[day].items.push(t);
             }
         });
         return map;
@@ -73,13 +77,20 @@ export default function CalendarWidget() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.25rem' }}>
                     {days.map((d, i) => {
-                        const amount = d && expenseMap[d];
+                        const dayData = d ? expenseMap[d] : null;
+                        const amount = dayData?.total || 0;
                         const hasExpense = amount > 0;
                         const isToday = d === today;
+
+                        let titleText = '';
+                        if (hasExpense) {
+                            titleText = dayData.items.map(t => `${t.description || 'Unknown'}: ${currency} ${t.amount.toFixed(2)}`).join('\n');
+                        }
 
                         return (
                             <div
                                 key={i}
+                                title={titleText}
                                 style={{
                                     height: '2.5rem',
                                     display: 'flex',
@@ -90,6 +101,7 @@ export default function CalendarWidget() {
                                     background: isToday ? 'var(--accent-glow)' : hasExpense ? 'var(--bg-glass)' : 'transparent',
                                     border: isToday ? '1px solid var(--accent)' : '1px solid transparent',
                                     position: 'relative',
+                                    cursor: hasExpense ? 'help' : 'default',
                                 }}
                             >
                                 {d && (

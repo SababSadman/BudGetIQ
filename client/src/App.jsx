@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './stores/useAppStore';
 import Auth from './components/Auth';
 import Navbar from './components/Navbar';
@@ -21,6 +22,9 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <Toaster position="top-center" toastOptions={{
+        style: { background: 'var(--bg-glass)', color: 'var(--text-primary)', border: '1px solid var(--border)' }
+      }} />
       <Navbar currentPage={page} onNavigate={setPage} />
       <main style={{ flex: 1 }}>
         {page === 'dashboard' && <Dashboard onNavigate={setPage} />}

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import toast from 'react-hot-toast';
 import { supabase, hasSupabase } from '../lib/supabase';
 
 // ─── Mock/demo seed data ──────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ export const useAppStore = create(
                         if (meta.currency) set({ currency: meta.currency });
                         if (meta.budgetLimit !== undefined) set({ budgetLimit: Number(meta.budgetLimit) });
                         if (meta.weeklyBudgetLimit !== undefined) set({ weeklyBudgetLimit: Number(meta.weeklyBudgetLimit) });
+                        if (meta.dailyBudgetLimit !== undefined) set({ dailyBudgetLimit: Number(meta.dailyBudgetLimit) });
                         get().loadCategories();
                         get().loadTransactions();
                     } else {
@@ -72,6 +74,7 @@ export const useAppStore = create(
                         if (meta.currency) set({ currency: meta.currency });
                         if (meta.budgetLimit !== undefined) set({ budgetLimit: Number(meta.budgetLimit) });
                         if (meta.weeklyBudgetLimit !== undefined) set({ weeklyBudgetLimit: Number(meta.weeklyBudgetLimit) });
+                        if (meta.dailyBudgetLimit !== undefined) set({ dailyBudgetLimit: Number(meta.dailyBudgetLimit) });
                         get().loadCategories();
                         get().loadTransactions();
                     } else {
@@ -134,6 +137,7 @@ export const useAppStore = create(
             currency: 'USD',
             budgetLimit: 1000,
             weeklyBudgetLimit: 250,
+            dailyBudgetLimit: 33,
 
             syncPreferencesToCloud: async (updates) => {
                 const { user } = get();
@@ -155,6 +159,11 @@ export const useAppStore = create(
                 const val = Number(l);
                 set({ weeklyBudgetLimit: val });
                 get().syncPreferencesToCloud({ weeklyBudgetLimit: val });
+            },
+            setDailyBudgetLimit: (l) => {
+                const val = Number(l);
+                set({ dailyBudgetLimit: val });
+                get().syncPreferencesToCloud({ dailyBudgetLimit: val });
             },
 
             // ── Exchange rates ────────────────────────────────────────────────────
@@ -256,8 +265,33 @@ export const useAppStore = create(
                     category_id: finalCategoryId
                 };
 
+                // Track total spend changes for limits check
+                const store = get();
+                const oldMonthly = store.getMonthlySpend();
+                const oldWeekly = store.getWeeklySpend();
+                const oldDaily = store.getDailySpend();
+
                 // Optimistic update
                 set({ transactions: [newTx, ...transactions] });
+
+                // Compare after adding
+                const updatedStore = get();
+                const amountToAdd = updatedStore.convertToBase(newTx.amount, newTx.currency);
+
+                const newMonthly = oldMonthly + amountToAdd;
+                if (oldMonthly <= store.budgetLimit && newMonthly > store.budgetLimit) {
+                    toast.error(`Monthly budget crossed! (${store.currency} ${store.budgetLimit})`);
+                }
+
+                const newWeekly = oldWeekly + amountToAdd;
+                if (oldWeekly <= store.weeklyBudgetLimit && newWeekly > store.weeklyBudgetLimit) {
+                    toast.error(`Weekly budget crossed! (${store.currency} ${store.weeklyBudgetLimit})`);
+                }
+
+                const newDaily = oldDaily + amountToAdd;
+                if (oldDaily <= store.dailyBudgetLimit && newDaily > store.dailyBudgetLimit) {
+                    toast.error(`Daily budget crossed! (${store.currency} ${store.dailyBudgetLimit})`);
+                }
 
                 if (hasSupabase && user) {
                     const { data, error } = await supabase
@@ -323,6 +357,29 @@ export const useAppStore = create(
                     .reduce((sum, t) => sum + convertToBase(t.amount, t.currency), 0);
             },
 
+            getWeeklySpend: () => {
+                const { transactions, convertToBase } = get();
+                const now = new Date();
+                const dayOfWeek = now.getDay();
+                const dist = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Start week on Monday
+                const weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - dist);
+                weekStart.setHours(0, 0, 0, 0);
+
+                return transactions
+                    .filter(t => new Date(t.created_at) >= weekStart)
+                    .reduce((sum, t) => sum + convertToBase(t.amount, t.currency), 0);
+            },
+
+            getDailySpend: () => {
+                const { transactions, convertToBase } = get();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return transactions
+                    .filter(t => new Date(t.created_at) >= today)
+                    .reduce((sum, t) => sum + convertToBase(t.amount, t.currency), 0);
+            },
+
             getSpendByCategory: () => {
                 const { transactions, convertToBase, categories } = get();
                 const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
@@ -355,6 +412,7 @@ export const useAppStore = create(
                 currency: s.currency,
                 budgetLimit: s.budgetLimit,
                 weeklyBudgetLimit: s.weeklyBudgetLimit,
+                dailyBudgetLimit: s.dailyBudgetLimit,
                 transactions: s.transactions,
                 categories: s.categories,
             }),

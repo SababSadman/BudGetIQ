@@ -1,12 +1,30 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { PiggyBank, Target, Calendar } from 'lucide-react';
+import { PiggyBank, Target, Calendar, Lock, Unlock } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore';
 
-function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, isEditing, editValue, onEditChange }) {
+// Returns today's midnight, this week's Monday midnight, and this month's 1st midnight
+function getPeriodStarts() {
+    const now = new Date();
+    const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
+    const dow = now.getDay();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    weekStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { dayStart, weekStart, monthStart };
+}
+
+function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, canEdit, editValue, onEditChange, onSave }) {
     const saved = budget - spent;
     const progress = Math.min(100, Math.max(0, (spent / budget) * 100));
     const isOverBudget = spent > budget;
+    const [editing, setEditing] = useState(false);
+
+    const handleSave = () => {
+        onSave(parseFloat(editValue) || 0);
+        setEditing(false);
+    };
 
     return (
         <motion.div
@@ -28,12 +46,32 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, is
                     </div>
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{title}</h2>
                 </div>
+                {/* Lock / Edit controls */}
+                {canEdit ? (
+                    editing ? (
+                        <button className="btn btn-primary" style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }} onClick={handleSave}>
+                            Save ✓
+                        </button>
+                    ) : (
+                        <button
+                            className="btn btn-ghost"
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            onClick={() => setEditing(true)}
+                        >
+                            <Unlock size={13} /> Edit Budget
+                        </button>
+                    )
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <Lock size={12} /> Locked until reset
+                    </div>
+                )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '0.5rem' }}>
                 <div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>BUDGET</div>
-                    {isEditing ? (
+                    {editing ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{currency}</span>
                             <input
@@ -58,7 +96,7 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, is
                 <div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>SAVED</div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 700, color: isOverBudget ? 'var(--danger)' : 'var(--success)' }}>
-                        {currency} {saved.toFixed(2)}
+                        {saved < 0 ? '−' : ''}{currency} {Math.abs(saved).toFixed(2)}
                     </div>
                 </div>
             </div>
@@ -67,7 +105,7 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, is
             <div style={{ marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem', color: 'var(--text-muted)' }}>
                     <span>{progress.toFixed(0)}% Utilized</span>
-                    <span>{currency} {budget} Limit</span>
+                    <span>{currency} {budget.toFixed(2)} Limit</span>
                 </div>
                 <div style={{ width: '100%', height: 8, background: 'var(--bg-glass)', borderRadius: 4, overflow: 'hidden' }}>
                     <motion.div
@@ -83,82 +121,64 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, is
 }
 
 export default function Savings() {
-    const { transactions, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, currency, convertToBase } = useAppStore();
+    const { transactions, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, dailyBudgetLimit, setDailyBudgetLimit, currency, convertToBase } = useAppStore();
 
-    // Default to budget / 4.33 if weeklyBudgetLimit is undefined
     const currentWeeklyBudget = weeklyBudgetLimit || (budgetLimit / 4.33);
+    const currentDailyBudget = dailyBudgetLimit || (budgetLimit / 30);
 
-    const [isEditing, setIsEditing] = useState(false);
     const [editMonthly, setEditMonthly] = useState(String(budgetLimit));
     const [editWeekly, setEditWeekly] = useState(String(currentWeeklyBudget.toFixed(2)));
+    const [editDaily, setEditDaily] = useState(String(currentDailyBudget.toFixed(2)));
 
-    const handleSave = () => {
-        setBudgetLimit(parseFloat(editMonthly) || 0);
-        setWeeklyBudgetLimit(parseFloat(editWeekly) || 0);
-        setIsEditing(false);
-    };
-
-    // Calculate metrics
-    const { weeklySpend, monthlySpend } = useMemo(() => {
-        const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        let wSpend = 0;
-        let mSpend = 0;
+    // Calculate metrics and per-period edit lock
+    const { dailySpend, weeklySpend, monthlySpend, canEditDaily, canEditWeekly, canEditMonthly } = useMemo(() => {
+        const { dayStart, weekStart, monthStart } = getPeriodStarts();
+        let dSpend = 0, wSpend = 0, mSpend = 0;
 
         transactions.forEach(t => {
             const date = new Date(t.created_at);
             const amt = convertToBase(t.amount, t.currency);
-
-            if (date >= startOfMonth) mSpend += amt;
-            if (date >= startOfWeek) wSpend += amt;
+            if (date >= monthStart) mSpend += amt;
+            if (date >= weekStart) wSpend += amt;
+            if (date >= dayStart) dSpend += amt;
         });
 
-        return { weeklySpend: wSpend, monthlySpend: mSpend };
+        // Unlock editing only if no spend has happened yet in the period (fresh reset)
+        return {
+            dailySpend: dSpend, weeklySpend: wSpend, monthlySpend: mSpend,
+            canEditDaily: dSpend === 0,
+            canEditWeekly: wSpend === 0,
+            canEditMonthly: mSpend === 0,
+        };
     }, [transactions, convertToBase]);
+
+    const monthlySaved = budgetLimit - monthlySpend;
 
     return (
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '2rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>Savings Overview</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Track your unspent budget over time</p>
-                </div>
-                <button
-                    className="btn btn-ghost"
-                    onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                >
-                    {isEditing ? 'Save Budgets ✓' : 'Edit Budgets'}
-                </button>
+            <div>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>Savings Overview</h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Budgets lock once spending starts — editable only after a period reset.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
                 <SavingsCard
-                    title="Weekly Overview"
-                    icon={Calendar}
-                    budget={currentWeeklyBudget}
-                    spent={weeklySpend}
-                    currency={currency}
-                    delay={0.1}
-                    isEditing={isEditing}
-                    editValue={editWeekly}
-                    onEditChange={setEditWeekly}
+                    title="Daily Overview" icon={Target}
+                    budget={currentDailyBudget} spent={dailySpend} currency={currency}
+                    delay={0.05} canEdit={canEditDaily}
+                    editValue={editDaily} onEditChange={setEditDaily} onSave={setDailyBudgetLimit}
                 />
-
                 <SavingsCard
-                    title="Monthly Overview"
-                    icon={Target}
-                    budget={budgetLimit}
-                    spent={monthlySpend}
-                    currency={currency}
-                    delay={0.2}
-                    isEditing={isEditing}
-                    editValue={editMonthly}
-                    onEditChange={setEditMonthly}
+                    title="Weekly Overview" icon={Calendar}
+                    budget={currentWeeklyBudget} spent={weeklySpend} currency={currency}
+                    delay={0.1} canEdit={canEditWeekly}
+                    editValue={editWeekly} onEditChange={setEditWeekly} onSave={setWeeklyBudgetLimit}
+                />
+                <SavingsCard
+                    title="Monthly Overview" icon={Target}
+                    budget={budgetLimit} spent={monthlySpend} currency={currency}
+                    delay={0.2} canEdit={canEditMonthly}
+                    editValue={editMonthly} onEditChange={setEditMonthly} onSave={setBudgetLimit}
                 />
             </div>
 
@@ -167,13 +187,21 @@ export default function Savings() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.45 }}
                 className="glass"
-                style={{ padding: '1.5rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(74, 222, 128, 0.05)' }}
+                style={{
+                    padding: '1.5rem', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem',
+                    background: monthlySaved >= 0 ? 'rgba(74, 222, 128, 0.05)' : 'rgba(239, 68, 68, 0.05)'
+                }}
             >
-                <PiggyBank size={32} color="var(--success)" />
+                <PiggyBank size={32} color={monthlySaved >= 0 ? 'var(--success)' : 'var(--danger)'} />
                 <div>
-                    <h3 style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--success)' }}>Keep it up!</h3>
+                    <h3 style={{ fontWeight: 600, fontSize: '1.05rem', color: monthlySaved >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                        {monthlySaved >= 0 ? 'Keep it up!' : 'Over Budget!'}
+                    </h3>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                        Consistent saving helps you reach your financial goals faster. Your total monthly savings potential is <strong style={{ color: 'var(--text-primary)' }}>{currency} {budgetLimit.toFixed(2)}</strong>.
+                        {monthlySaved >= 0
+                            ? <>{`Monthly savings so far: `}<strong style={{ color: 'var(--text-primary)' }}>{currency} {monthlySaved.toFixed(2)}</strong></>
+                            : <>{`You are `}<strong style={{ color: 'var(--danger)' }}>{currency} {Math.abs(monthlySaved).toFixed(2)}</strong>{` over your monthly budget.`}</>
+                        }
                     </p>
                 </div>
             </motion.div>
