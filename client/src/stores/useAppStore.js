@@ -220,6 +220,13 @@ export const useAppStore = create(
                 }
             },
 
+            removeCategory: async (id) => {
+                set(s => ({ categories: s.categories.filter(c => c.id !== id) }));
+                if (hasSupabase) {
+                    await supabase.from('categories').delete().eq('id', id);
+                }
+            },
+
             // ── Transactions ──────────────────────────────────────────────────────
             transactions: [],
 

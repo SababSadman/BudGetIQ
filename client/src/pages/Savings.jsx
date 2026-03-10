@@ -15,11 +15,16 @@ function getPeriodStarts() {
     return { dayStart, weekStart, monthStart };
 }
 
-function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, canEdit, editValue, onEditChange, onSave }) {
+function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, canEdit, onSave }) {
     const saved = budget - spent;
     const progress = Math.min(100, Math.max(0, (spent / budget) * 100));
     const isOverBudget = spent > budget;
     const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState(budget.toFixed(2));
+
+    React.useEffect(() => {
+        if (!editing) setEditValue(budget.toFixed(2));
+    }, [budget, editing]);
 
     const handleSave = () => {
         onSave(parseFloat(editValue) || 0);
@@ -56,7 +61,10 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, ca
                         <button
                             className="btn btn-ghost"
                             style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                            onClick={() => setEditing(true)}
+                            onClick={() => {
+                                setEditValue(budget.toFixed(2));
+                                setEditing(true);
+                            }}
                         >
                             <Unlock size={13} /> Edit Budget
                         </button>
@@ -79,7 +87,7 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, ca
                                 type="number"
                                 step="10"
                                 value={editValue}
-                                onChange={e => onEditChange(e.target.value)}
+                                onChange={e => setEditValue(e.target.value)}
                                 style={{ padding: '0.2rem 0.4rem', width: '80px', fontSize: '1rem', fontWeight: 600, height: 'auto', background: 'var(--bg-deep)' }}
                             />
                         </div>
@@ -126,10 +134,6 @@ export default function Savings() {
     const currentWeeklyBudget = weeklyBudgetLimit || (budgetLimit / 4.33);
     const currentDailyBudget = dailyBudgetLimit || (budgetLimit / 30);
 
-    const [editMonthly, setEditMonthly] = useState(String(budgetLimit));
-    const [editWeekly, setEditWeekly] = useState(String(currentWeeklyBudget.toFixed(2)));
-    const [editDaily, setEditDaily] = useState(String(currentDailyBudget.toFixed(2)));
-
     // Calculate metrics and per-period edit lock
     const { dailySpend, weeklySpend, monthlySpend, canEditDaily, canEditWeekly, canEditMonthly } = useMemo(() => {
         const { dayStart, weekStart, monthStart } = getPeriodStarts();
@@ -166,19 +170,19 @@ export default function Savings() {
                     title="Daily Overview" icon={Target}
                     budget={currentDailyBudget} spent={dailySpend} currency={currency}
                     delay={0.05} canEdit={canEditDaily}
-                    editValue={editDaily} onEditChange={setEditDaily} onSave={setDailyBudgetLimit}
+                    onSave={setDailyBudgetLimit}
                 />
                 <SavingsCard
                     title="Weekly Overview" icon={Calendar}
                     budget={currentWeeklyBudget} spent={weeklySpend} currency={currency}
                     delay={0.1} canEdit={canEditWeekly}
-                    editValue={editWeekly} onEditChange={setEditWeekly} onSave={setWeeklyBudgetLimit}
+                    onSave={setWeeklyBudgetLimit}
                 />
                 <SavingsCard
                     title="Monthly Overview" icon={Target}
                     budget={budgetLimit} spent={monthlySpend} currency={currency}
                     delay={0.2} canEdit={canEditMonthly}
-                    editValue={editMonthly} onEditChange={setEditMonthly} onSave={setBudgetLimit}
+                    onSave={setBudgetLimit}
                 />
             </div>
 

@@ -8,7 +8,7 @@ const EMOJIS = ['🍜', '🚌', '🎮', '💊', '🛍️', '💡', '☕', '🥗'
 const COLORS = ['#f97316', '#3b82f6', '#a855f7', '#22c55e', '#ec4899', '#eab308', '#06b6d4', '#ef4444', '#8b5cf6', '#14b8a6'];
 
 export default function Settings() {
-    const { currency, setCurrency, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, dailyBudgetLimit, setDailyBudgetLimit, categories, addCategory, removeCategory } = useAppStore();
+    const { currency, setCurrency, budgetLimit, setBudgetLimit, weeklyBudgetLimit, setWeeklyBudgetLimit, dailyBudgetLimit, setDailyBudgetLimit, categories, addCategory, removeCategory, getDailySpend, getWeeklySpend, getMonthlySpend } = useAppStore();
 
     const [budget, setBudget] = useState(String(budgetLimit));
     const [weeklyBudget, setWeeklyBudget] = useState(String(weeklyBudgetLimit || (budgetLimit / 4.33).toFixed(0)));
