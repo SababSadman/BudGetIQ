@@ -211,6 +211,23 @@ export default function Auth() {
                 </AnimatePresence>
             </motion.div>
 
+            <div style={{
+                position: 'absolute',
+                bottom: '1.5rem',
+                left: 0,
+                right: 0,
+                textAlign: 'center',
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontSize: '0.85rem',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                letterSpacing: '0.02em',
+                fontWeight: 500,
+                zIndex: 10,
+                textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+            }}>
+                Created and Managed By Sabab Sadman
+            </div>
+
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );

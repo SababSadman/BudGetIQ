@@ -33,6 +33,18 @@ export default function App() {
         {page === 'settings' && <Settings />}
       </main>
       <QuickAdd />
+      <footer style={{
+        textAlign: 'center',
+        padding: '1.5rem',
+        fontSize: '0.85rem',
+        color: 'var(--text-muted, #888)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        marginTop: 'auto',
+        letterSpacing: '0.02em',
+        fontWeight: 500
+      }}>
+        Created and Managed By Sabab Sadman
+      </footer>
     </div>
   );
 }
