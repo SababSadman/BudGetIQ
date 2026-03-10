@@ -50,18 +50,12 @@ export default function Dashboard({ onNavigate }) {
     const topCats = getSpendByCategory().slice(0, 3);
 
     return (
-        <div style={{
-            maxWidth: 1100, margin: '0 auto',
-            padding: '1.5rem 1.25rem 3rem',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0,1fr) 340px',
-            gap: '1.25rem',
-        }}>
+        <div className="dashboard-wrapper">
             {/* ── Left column ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '0.75rem' }}>
+                <div className="dashboard-stats-grid">
                     <StatCard
                         label="MONTHLY SPEND" icon={TrendingDown} color="var(--danger)" delay={0.05}
                         value={`${currency} ${spent.toFixed(2)}`}
@@ -141,7 +135,7 @@ export default function Dashboard({ onNavigate }) {
                 >
                     <h2 style={{ fontSize: '0.9rem', fontWeight: 600, alignSelf: 'flex-start' }}>Budgets</h2>
 
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', width: '100%', flexWrap: 'wrap' }}>
+                    <div className="dashboard-budget-wrap">
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Monthly</span>
                             <BudgetRing size={120} type="monthly" />

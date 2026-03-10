@@ -123,7 +123,7 @@ export default function Settings() {
                 <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Categories</h2>
 
                 {/* Add new */}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div className="settings-input-group">
                     {/* Emoji picker */}
                     <select
                         value={newCat.icon}

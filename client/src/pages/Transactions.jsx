@@ -40,7 +40,7 @@ export default function Transactions() {
                 </p>
 
                 {/* Filters */}
-                <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                <div className="transactions-filters">
                     <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
                         <Search size={14} style={{
                             position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)',

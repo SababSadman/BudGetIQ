@@ -321,3 +321,137 @@ a {
     box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
   }
 }
+
+/* ============================================================
+   Responsive Layout Classes
+   ============================================================ */
+
+/* Auth */
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .auth-container {
+    padding: 1.5rem;
+  }
+}
+
+/* Dashboard */
+.dashboard-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 1.25rem;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.dashboard-budget-wrap {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-wrapper {
+    padding: 1rem 1rem 3rem;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Navbar */
+.nav-link-container {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: 0.75rem;
+}
+
+.nav-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .nav-link-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .nav-link-container::-webkit-scrollbar {
+    display: none;
+    /* Safari and Chrome */
+  }
+
+  .nav-shortcut-hint {
+    display: none !important;
+  }
+}
+
+/* Settings / Savings / Transactions Inner Grids */
+.stats-inner-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.settings-input-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .stats-inner-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .settings-input-group {
+    flex-direction: column;
+  }
+}
+
+.transactions-filters {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .transactions-filters {
+    flex-direction: column;
+  }
+
+  .transactions-filters>* {
+    width: 100% !important;
+  }
+}

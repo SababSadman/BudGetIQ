@@ -68,7 +68,7 @@ function SavingsCard({ title, icon: Icon, budget, spent, currency, delay = 0, ca
                 )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className="stats-inner-grid">
                 <div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>BUDGET</div>
                     {editing ? (

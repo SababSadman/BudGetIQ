@@ -45,7 +45,7 @@ export default function Navbar({ currentPage, onNavigate }) {
             </button>
 
             {/* Nav items — desktop */}
-            <div style={{ display: 'flex', gap: '0.25rem', marginLeft: '0.75rem' }}>
+            <div className="nav-link-container">
                 {navItems.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
@@ -67,7 +67,7 @@ export default function Navbar({ currentPage, onNavigate }) {
                 ))}
             </div>
 
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="nav-controls">
                 {/* Quick add button */}
                 <button
                     className="btn btn-ghost"
@@ -76,7 +76,7 @@ export default function Navbar({ currentPage, onNavigate }) {
                 >
                     <Zap size={13} />
                     <span>Add</span>
-                    <span style={{
+                    <span className="nav-shortcut-hint" style={{
                         fontSize: '0.68rem', color: 'var(--text-muted)',
                         background: 'var(--bg-glass)', border: '1px solid var(--border)',
                         borderRadius: 4, padding: '0.05rem 0.3rem',
